@@ -2,7 +2,7 @@
 .vscode
 *~
 dist
-dist-*
+dist-*/
 cabal-dev
 *.o
 *.hi

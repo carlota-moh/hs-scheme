@@ -1,6 +1,9 @@
 module Lib
-    ( someFunc
+    ( greet
     ) where
+import System.Environment (getArgs)
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+greet :: IO ()
+greet = do
+    args <- getArgs
+    putStrLn ("Hello " ++ head args)

@@ -9,8 +9,8 @@ version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/hs-scheme#readme>
 homepage:       https://github.com/githubuser/hs-scheme#readme
 bug-reports:    https://github.com/githubuser/hs-scheme/issues
-author:         Author name here
-maintainer:     example@example.com
+author:         Charly Monedero
+maintainer:     cmonedero@stackbuilders.com
 copyright:      2024 Author name here
 license:        BSD-3-Clause
 license-file:   LICENSE
