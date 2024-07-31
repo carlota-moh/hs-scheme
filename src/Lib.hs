@@ -1,5 +1,7 @@
 module Lib
   ( greet
+  , getTwoFromList
+  , pairToList
   ) where
 
 import           System.Environment (getArgs)
@@ -12,6 +14,9 @@ getTwoFromList :: [a] -> Maybe (a, a)
 getTwoFromList []     = Nothing
 getTwoFromList [_]    = Nothing
 getTwoFromList (x:xs) = sequence (x, safeHead xs)
+
+pairToList :: (a, a) -> [a]
+pairToList (x, y) = [x, y]
 
 greet :: IO ()
 greet = do
