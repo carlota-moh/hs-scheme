@@ -11,10 +11,15 @@ import           System.Environment            (getArgs)
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 
+-- skip all spaces when parsing
+spaces :: Parser ()
+spaces = skipMany1 space
+
 readExpr :: String -> String
--- run parser function (symbol) over input, using "lisp" for error messages
+-- run parser function (spaces + symbol) over input, using "lisp" for error messages
 readExpr input =
-  case parse symbol "lisp" input of
+  -- attempt to match spaces, then symbol, fail if either fails
+  case parse (spaces >> symbol) "lisp" input of
     Left err  -> "No match: " ++ show err
     Right val -> "Found value! " ++ show val
 
