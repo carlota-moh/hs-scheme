@@ -2,7 +2,7 @@ module Main
   ( main
   ) where
 
-import           Parser (runSimpleParser)
+import           Parser (runMyParser)
 
 main :: IO ()
-main = runSimpleParser
+main = runMyParser

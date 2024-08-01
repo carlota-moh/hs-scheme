@@ -1,35 +1,57 @@
 module Parser
-  ( runSimpleParser
+  ( runMyParser
   ) where
 
 import           Text.ParserCombinators.Parsec hiding (spaces)
 
-import           Lib                           (getTwoFromList, pairToList)
+import           Control.Monad                 (liftM)
+import           Data                          (LispVal (..))
 import           System.Environment            (getArgs)
 
 -- recognize any of the provided characters from input string
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 
--- skip all spaces when parsing
-spaces :: Parser ()
-spaces = skipMany1 space
+-- A string is a double quote mark, followed by any number of non-quote characters,
+-- followed by a closing quote mark
+parseString :: Parser LispVal
+parseString = do
+  -- discard '"', they just make sure this is a string
+  _ <- char '"'
+  x <- many (noneOf "\"")
+  _ <- char '"'
+  return $ String x
 
-readExpr :: String -> String
+parseAtom :: Parser LispVal
+parseAtom = do
+              -- This tries the first parser, then if it fails, tries the second.
+  first <- letter <|> symbol
+  rest <- many (letter <|> digit <|> symbol)
+  let atom = first : rest
+  return
+    $ case atom of
+                        -- literal strings for true and false
+        "#t" -> Bool True
+        "#f" -> Bool False
+        _    -> Atom atom
+
+-- read converts the parsed string into an Integer, but because many1 digit returns a Parser String
+-- (not a String), we use liftM to allow the composition, to work on the inside value
+parseNumber :: Parser LispVal
+parseNumber = liftM (Number . read) $ many1 digit
+
+-- parser that accepts either atom, string or number
+parseExpr :: Parser LispVal
+parseExpr = parseAtom <|> parseString <|> parseNumber
+
 -- run parser function (spaces + symbol) over input, using "lisp" for error messages
+readExpr :: String -> String
 readExpr input =
-  -- attempt to match spaces, then symbol, fail if either fails
-  case parse (spaces >> symbol) "lisp" input of
+  case parse parseExpr "lisp" input of
     Left err  -> "No match: " ++ show err
     Right val -> "Found value! " ++ show val
 
-runSimpleParser :: IO ()
-runSimpleParser =
-  do
-    listOfArgs <- getArgs
-    let mbTwoElements = getTwoFromList listOfArgs
-    case mbTwoElements of
-      Nothing -> putStrLn "Hey, give me something to work with!"
-      -- use mapM_ as the monadic version of map that does not collect list results
-      Just strTuple -> mapM_ (putStrLn . readExpr) (pairToList strTuple)
-        
+runMyParser :: IO ()
+runMyParser = do
+  (expr:_) <- getArgs
+  putStrLn (readExpr expr)
