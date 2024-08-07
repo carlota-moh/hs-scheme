@@ -10,6 +10,7 @@ import           Text.ParserCombinators.Parsec hiding (spaces)
 import           Control.Monad                 (liftM)
 import           Data                          (LispVal (..))
 import           System.Environment            (getArgs)
+import           Utils                         (safeHead)
 
 -- recognize any of the provided characters from input string
 symbol :: Parser Char
@@ -56,5 +57,8 @@ readExpr input =
 
 runMyParser :: IO ()
 runMyParser = do
-  (expr:_) <- getArgs
-  putStrLn (readExpr expr)
+  args <- getArgs
+  let mbArgs = safeHead args
+  case mbArgs of
+    Nothing   -> putStrLn "Hey! Give me something to work with"
+    Just expr -> putStrLn (readExpr expr)
