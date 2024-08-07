@@ -1,5 +1,8 @@
 module Parser
   ( runMyParser
+  , parseString
+  , parseAtom
+  , parseNumber
   ) where
 
 import           Text.ParserCombinators.Parsec hiding (spaces)
@@ -24,13 +27,13 @@ parseString = do
 
 parseAtom :: Parser LispVal
 parseAtom = do
-              -- This tries the first parser, then if it fails, tries the second.
+  -- This tries the first parser, then if it fails, tries the second.
   first <- letter <|> symbol
   rest <- many (letter <|> digit <|> symbol)
   let atom = first : rest
   return
     $ case atom of
-                        -- literal strings for true and false
+       -- literal strings for true and false
         "#t" -> Bool True
         "#f" -> Bool False
         _    -> Atom atom

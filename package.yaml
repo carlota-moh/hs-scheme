@@ -58,3 +58,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - hs-scheme
+    - hspec
+    - hspec-parsec

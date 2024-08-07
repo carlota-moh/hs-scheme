@@ -9,4 +9,4 @@ data LispVal
   | Number Integer
   | String String
   | Bool Bool
-  deriving Show
+  deriving (Show, Eq)

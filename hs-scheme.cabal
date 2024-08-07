@@ -60,6 +60,7 @@ test-suite hs-scheme-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      ParserSpec
       Paths_hs_scheme
   autogen-modules:
       Paths_hs_scheme
@@ -69,5 +70,7 @@ test-suite hs-scheme-test
   build-depends:
       base >=4.7 && <5
     , hs-scheme
+    , hspec
+    , hspec-parsec
     , parsec
   default-language: Haskell2010
