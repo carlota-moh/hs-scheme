@@ -1,0 +1,10 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:hs-scheme"
+
+    - path: "app/Main.hs"
+      component: "hs-scheme:exe:hs-scheme-exe"
+
+    - path: "test"
+      component: "hs-scheme:test:hs-scheme-test"

@@ -1,6 +1,8 @@
-module Main (main) where
+module Main
+  ( main
+  ) where
 
-import Lib (greet)
+import           Parser (runMyParser)
 
 main :: IO ()
-main = greet
+main = runMyParser
