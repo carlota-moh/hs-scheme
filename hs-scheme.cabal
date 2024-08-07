@@ -26,9 +26,10 @@ source-repository head
 library
   exposed-modules:
       Data
-      Lib
+      Legacy.Lib
+      Legacy.SimpleParser
       Parser
-      SimpleParser
+      Utils
   other-modules:
       Paths_hs_scheme
   autogen-modules:

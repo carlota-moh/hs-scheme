@@ -1,14 +1,11 @@
-module Lib
+module Legacy.Lib
   ( greet
   , getTwoFromList
   , pairToList
   ) where
 
 import           System.Environment (getArgs)
-
-safeHead :: [a] -> Maybe a
-safeHead []    = Nothing
-safeHead (x:_) = Just x
+import           Utils              (safeHead)
 
 getTwoFromList :: [a] -> Maybe (a, a)
 getTwoFromList []     = Nothing
