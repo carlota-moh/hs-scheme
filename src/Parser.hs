@@ -5,6 +5,7 @@ module Parser
   , parseNumber
   , parseList
   , parseDottedList
+  , parseQuoted
   ) where
 
 import           Text.ParserCombinators.Parsec
@@ -62,6 +63,11 @@ parseDottedList =
     -- once again, make sure we have a '.' followed by space,
     -- but discard them when parsing
     char '.' >> spaces >> parseExpr >>= \t -> return $ DottedList h t
+
+-- Read the "'" character, parse the expression and then return it inside a list
+-- preceded by "quote"
+parseQuoted :: Parser LispVal
+parseQuoted = char '\'' >> parseExpr >>= \x -> return $ List [Atom "quote", x]
 
 -- run parser function (spaces + symbol) over input, using "lisp" for error messages
 readExpr :: String -> String
