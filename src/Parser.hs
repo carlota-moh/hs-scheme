@@ -3,9 +3,13 @@ module Parser
   , parseString
   , parseAtom
   , parseNumber
+  , parseList
+  , parseDottedList
+  , parseQuoted
+  , parseLispList
   ) where
 
-import           Text.ParserCombinators.Parsec hiding (spaces)
+import           Text.ParserCombinators.Parsec
 
 import           Control.Monad                 (liftM)
 import           Data                          (LispVal (..))
@@ -20,9 +24,8 @@ symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 -- followed by a closing quote mark
 parseString :: Parser LispVal
 parseString = do
-  -- discard '"', they just make sure this is a string
-  _ <- char '"'
-  x <- many (noneOf "\"")
+  -- discard '"', it just makes sure there is a '"' character in place
+  x <- char '"' >> many (noneOf "\"")
   _ <- char '"'
   return $ String x
 
@@ -44,9 +47,33 @@ parseAtom = do
 parseNumber :: Parser LispVal
 parseNumber = liftM (Number . read) $ many1 digit
 
+-- Read the "'" character, parse the expression and then return it inside a list
+-- preceded by "quote"
+parseQuoted :: Parser LispVal
+parseQuoted = char '\'' >> parseExpr >>= \x -> return $ List [Atom "quote", x]
+
+-- parses many string/nums/atoms separated by spaces
+-- works similar to parseNumber for applying the constructor
+parseList :: Parser LispVal
+parseList = liftM List $ spaceSep
+  where
+    spaceSep = parseExpr `sepBy` space
+
+parseDottedList :: Parser LispVal
+parseDottedList =
+  parseExpr `endBy` spaces >>= \h
+    -- once again, make sure we have a '.' followed by space,
+    -- but discard them when parsing
+   -> char '.' >> spaces >> parseExpr >>= \t -> return $ DottedList h t
+
+parseLispList :: Parser LispVal
+parseLispList =
+  -- check '(' character, try either list parser, check ')' character and return result
+  char '(' >> (try parseList <|> parseDottedList) >>= \x -> char ')' >> return x
+
 -- parser that accepts either atom, string or number
 parseExpr :: Parser LispVal
-parseExpr = parseAtom <|> parseString <|> parseNumber
+parseExpr = parseAtom <|> parseString <|> parseNumber <|> parseQuoted <|> parseLispList
 
 -- run parser function (spaces + symbol) over input, using "lisp" for error messages
 readExpr :: String -> String
