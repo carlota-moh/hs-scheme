@@ -3,8 +3,9 @@ module ParserSpec
   ) where
 
 import           Data              (LispVal (..))
-import           Parser            (parseAtom, parseDottedList, parseList,
-                                    parseNumber, parseQuoted, parseString)
+import           Parser            (parseAtom, parseDottedList, parseLispList,
+                                    parseList, parseNumber, parseQuoted,
+                                    parseString)
 import           Test.Hspec        (Spec, describe, it)
 import           Test.Hspec.Parsec (shouldParse)
 import           Text.Parsec       (parse)
@@ -45,3 +46,10 @@ spec = do
     let testParseQuoted = parse parseQuoted ""
     it "applies Lisp syntactic sugar for single quote"
       $ testParseQuoted "'value" `shouldParse` List [Atom "quote", Atom "value"]
+  describe "parseLispList" $ do
+    let testParseLispList = parse parseLispList ""
+    it "parses input into List"
+      $ testParseLispList "(1 value)" `shouldParse` List [Number 1, Atom "value"]
+    it "parses input into DottedList"
+      $ testParseLispList "(dotted . list)"
+          `shouldParse` DottedList [Atom "dotted"] (Atom "list")
