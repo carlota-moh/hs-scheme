@@ -3,8 +3,8 @@ module ParserSpec
   ) where
 
 import           Data              (LispVal (..))
-import           Parser            (parseAtom, parseList, parseNumber,
-                                    parseString)
+import           Parser            (parseAtom, parseDottedList, parseList,
+                                    parseNumber, parseString)
 import           Test.Hspec        (Spec, describe, it)
 import           Test.Hspec.Parsec (shouldParse)
 import           Text.Parsec       (parse)
@@ -31,4 +31,13 @@ spec = do
   describe "parseList" $ do
     let testParseList = parse parseList ""
     it "parses a values separated by spaces into a LispVal List"
-      $ testParseList "1 #tom! \"hello\"" `shouldParse` List [Number 1, Atom "#tom!", String "hello"]
+      $ testParseList "1 #tom! \"hello\""
+          `shouldParse` List [Number 1, Atom "#tom!", String "hello"]
+  describe "parseDottedList" $ do
+    let testParseDottedList = parse parseDottedList ""
+    it
+      "parses a list of values + a final value separated by a dot into a LispVal DottedList"
+      $ testParseDottedList "1 #tom! \"hello\" . finalValue"
+          `shouldParse` DottedList
+                          [Number 1, Atom "#tom!", String "hello"]
+                          (Atom "finalValue")

@@ -4,9 +4,10 @@ module Parser
   , parseAtom
   , parseNumber
   , parseList
+  , parseDottedList
   ) where
 
-import           Text.ParserCombinators.Parsec hiding (spaces)
+import           Text.ParserCombinators.Parsec
 
 import           Control.Monad                 (liftM)
 import           Data                          (LispVal (..))
@@ -52,7 +53,15 @@ parseExpr = parseAtom <|> parseString <|> parseNumber
 -- works similar to parseNumber for applying the constructor
 parseList :: Parser LispVal
 parseList = liftM List $ spaceSep
-  where spaceSep = parseExpr `sepBy` space
+  where
+    spaceSep = parseExpr `sepBy` space
+
+parseDottedList :: Parser LispVal
+parseDottedList =
+  parseExpr `endBy` spaces >>= \h -> 
+    -- once again, make sure we have a '.' followed by space,
+    -- but discard them when parsing
+    char '.' >> spaces >> parseExpr >>= \t -> return $ DottedList h t
 
 -- run parser function (spaces + symbol) over input, using "lisp" for error messages
 readExpr :: String -> String
