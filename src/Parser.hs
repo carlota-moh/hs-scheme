@@ -13,6 +13,7 @@ import           Text.ParserCombinators.Parsec
 
 import           Control.Monad                 (liftM)
 import           Data                          (LispVal (..))
+import           Evaluator                     (eval)
 import           System.Environment            (getArgs)
 import           Utils                         (safeHead)
 
@@ -67,20 +68,22 @@ parseDottedList =
    -> char '.' >> spaces >> parseExpr >>= \t -> return $ DottedList h t
 
 parseLispList :: Parser LispVal
-parseLispList =
+parseLispList
   -- check '(' character, try either list parser, check ')' character and return result
+ =
   char '(' >> (try parseList <|> parseDottedList) >>= \x -> char ')' >> return x
 
 -- parser that accepts either atom, string or number
 parseExpr :: Parser LispVal
-parseExpr = parseAtom <|> parseString <|> parseNumber <|> parseQuoted <|> parseLispList
+parseExpr =
+  parseAtom <|> parseString <|> parseNumber <|> parseQuoted <|> parseLispList
 
 -- run parser function (spaces + symbol) over input, using "lisp" for error messages
-readExpr :: String -> String
+readExpr :: String -> LispVal
 readExpr input =
   case parse parseExpr "lisp" input of
-    Left err  -> "No match: " ++ show err
-    Right val -> "Found value! " ++ show val
+    Left err  -> String $ "No match: " ++ show err
+    Right val -> val
 
 runMyParser :: IO ()
 runMyParser = do
@@ -88,4 +91,4 @@ runMyParser = do
   let mbArgs = safeHead args
   case mbArgs of
     Nothing   -> putStrLn "Hey! Give me something to work with"
-    Just expr -> putStrLn (readExpr expr)
+    Just expr -> (print . eval . readExpr) expr
