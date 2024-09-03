@@ -9,15 +9,15 @@ stack run <arg1>
 
 ```bash
 > stack run 12
-Found value! Number 12
+Found value! 12
 > stack run "#atom!"
-Found value! Atom "#atom!"
+Found value! #atom!
 > stack run \"hello\"
-Found value! String "hello"
+Found value! "hello"
 > stack run "(my list)"
-Found value! List [Atom "my",Atom "list"]
+Found value! (my list)
 > stack run "(dotted . list)"
-Found value! DottedList [Atom "dotted"] (Atom "list")
+Found value! (dotted . list)
 ```
 
 Note that in order to parse Strings you need to explicitely escape the '"' characters. Otherwise they will be parsed as atoms. 
