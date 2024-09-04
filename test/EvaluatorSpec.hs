@@ -22,3 +22,5 @@ spec = do
     it "evaluates a LispVal DottedList into a LispVal DottedList"
       $ eval (DottedList [Number 1, Number 2] (String "value"))
           `shouldBe` DottedList [Number 1, Number 2] (String "value")
+    it "evaluates operations and returns the result as a LispVal Number"
+      $ eval (List [Atom "+" , Number 1, Number 2]) `shouldBe` Number 3
