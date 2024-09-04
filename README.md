@@ -9,18 +9,39 @@ stack run <arg1>
 
 ```bash
 > stack run 12
-Found value! Number 12
+12
 > stack run "#atom!"
-Found value! Atom "#atom!"
+#atom!
 > stack run \"hello\"
-Found value! String "hello"
+"hello"
 > stack run "(my list)"
-Found value! List [Atom "my",Atom "list"]
+(my list)
 > stack run "(dotted . list)"
-Found value! DottedList [Atom "dotted"] (Atom "list")
+(dotted . list)
 ```
 
 Note that in order to parse Strings you need to explicitely escape the '"' characters. Otherwise they will be parsed as atoms. 
+
+It can also support basic arithmetic operations for both integers and strings (due to weak typing): 
+
+```
+> stack run "(+ 1 2)"
+3
+> stack run "(- 1 2)"
+-1
+> stack run "(+ "\1\" 2)"
+-1
+> stack run "(* 1 2)"
+2
+> stack run "(/ 10 2)"
+5
+> stack run "(quotient 10 3)"
+3
+> stack run "(mod 10 3)"
+1
+> stack run "(remainder 10 3)"
+1
+```
 
 Running without arg will result in an error message being thrown:
 
