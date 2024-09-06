@@ -12,7 +12,10 @@ module Parser
 import           Text.ParserCombinators.Parsec
 
 import           Control.Monad                 (liftM)
-import           Data                          (LispVal (..))
+import           Control.Monad.Except          (throwError)
+import           Data                          (LispError (..), LispVal (..),
+                                                ThrowsError, extractValue,
+                                                trapError)
 import           Evaluator                     (eval)
 import           System.Environment            (getArgs)
 import           Utils                         (safeHead)
@@ -79,16 +82,20 @@ parseExpr =
   parseAtom <|> parseString <|> parseNumber <|> parseQuoted <|> parseLispList
 
 -- run parser function (spaces + symbol) over input, using "lisp" for error messages
-readExpr :: String -> LispVal
+-- Note that we are now using a monadic value as output type
+readExpr :: String -> ThrowsError LispVal
 readExpr input =
   case parse parseExpr "lisp" input of
-    Left err  -> String $ "No match: " ++ show err
-    Right val -> val
+    Left err  -> throwError $ Parser err
+    Right val -> return val
 
 runMyParser :: IO ()
 runMyParser = do
   args <- getArgs
   let mbArgs = safeHead args
   case mbArgs of
-    Nothing   -> putStrLn "Hey! Give me something to work with"
-    Just expr -> (print . eval . readExpr) expr
+    Nothing -> putStrLn "Hey! Give me something to work with"
+    Just expr -> do
+      let evaled = liftM show (readExpr expr >>= eval)
+      -- convert error to their String representation, undo constructor and print result
+      putStrLn $ extractValue $ trapError evaled
