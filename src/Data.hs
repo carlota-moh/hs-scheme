@@ -28,6 +28,7 @@ data LispError
   | NotFunction String String
   | UnboundVar String String
   | Default String
+  deriving (Eq)
 
 -- partially applied type for functions that may fail and throw a LispError
 type ThrowsError = Either LispError
@@ -108,8 +109,8 @@ unpackStr (Bool s)   = return $ show s
 unpackStr notStr     = throwError $ TypeMismatch "string" notStr
 
 unpackBool :: LispVal -> ThrowsError Bool
-unpackBool (Bool b)   = return b
-unpackBool notBool    = throwError $ TypeMismatch "bool" notBool
+unpackBool (Bool b) = return b
+unpackBool notBool  = throwError $ TypeMismatch "bool" notBool
 
 -- Takes a function and a list of evaluated arguments, applies said function
 -- and returns the result wrapped in the Number constructor
@@ -135,5 +136,7 @@ boolBinop unpacker op params =
       return $ Bool $ left `op` right
 
 numBoolBinop = boolBinop unpackNum
+
 strBoolBinop = boolBinop unpackStr
+
 boolBoolBinop = boolBinop unpackBool

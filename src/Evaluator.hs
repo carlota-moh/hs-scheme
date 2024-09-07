@@ -32,4 +32,7 @@ eval (List [Atom "if", ifPred, ifConseq, alt]) = do
     else eval ifConseq
 -- applying functions to args (ex: (+ 2 2) = 4)
 eval (List (Atom func:args)) = mapM eval args >>= apply func
+-- other lists should be returned as they are
+eval val@(List _) = return val
+eval val@(DottedList _ _) = return val
 eval badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
