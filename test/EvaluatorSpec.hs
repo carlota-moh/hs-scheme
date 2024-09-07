@@ -27,6 +27,8 @@ spec = do
             `shouldBe` Right (DottedList [Number 1, Number 2] (String "value"))
       it "evaluates operations and returns the result as a LispVal Number"
         $ eval (List [Atom "+", Number 1, Number 2]) `shouldBe` Right (Number 3)
+      it "evaluates boolean operations"
+        $ eval (List [Atom "<", Number 1, Number 2]) `shouldBe` Right (Bool True)
     describe "if-else" $ do
       it "returns consequence when predicate is true"
         $ eval
