@@ -28,10 +28,10 @@ data LispError
   | NotFunction String String
   | UnboundVar String String
   | Default String
+  deriving (Eq)
 
--- utility for applying unwords, which joins words separated by spaces
-unwordsList :: [LispVal] -> String
-unwordsList = unwords . map show
+-- partially applied type for functions that may fail and throw a LispError
+type ThrowsError = Either LispError
 
 -- custom printing
 instance Show LispVal where
@@ -43,6 +43,10 @@ instance Show LispVal where
   show (List contents)   = "(" ++ unwordsList contents ++ ")"
   show (DottedList h t)  = "(" ++ unwordsList h ++ " . " ++ show t ++ ")"
 
+-- utility for applying unwords, which joins words separated by spaces
+unwordsList :: [LispVal] -> String
+unwordsList = unwords . map show
+
 instance Show LispError where
   show (UnboundVar message varname) = message ++ ":  " ++ varname
   show (BadSpecialForm message form) = message ++ ": " ++ show form
@@ -53,9 +57,6 @@ instance Show LispError where
     "Invalid type: expected " ++ expected ++ ", found " ++ show found
   show (Parser parseErr) = "Parse error at " ++ show parseErr
   show (Default message) = message
-
--- partially applied type for functions that may fail and throw a LispError
-type ThrowsError = Either LispError
 
 -- catchError applies the func composition to the Either action if it is an error
 -- so in practice we use this to transform one error into another
@@ -74,7 +75,45 @@ primitives =
   , ("mod", numericBinop mod)
   , ("quotient", numericBinop quot)
   , ("remainder", numericBinop rem)
+  , ("=", numBoolBinop (==))
+  , ("<", numBoolBinop (<))
+  , (">", numBoolBinop (>))
+  , ("/=", numBoolBinop (/=))
+  , (">=", numBoolBinop (>=))
+  , ("<=", numBoolBinop (<=))
+  , ("&&", boolBoolBinop (&&))
+  , ("||", boolBoolBinop (||))
+  , ("string=?", strBoolBinop (==))
+  , ("string<?", strBoolBinop (<))
+  , ("string>?", strBoolBinop (>))
+  , ("string<=?", strBoolBinop (<=))
+  , ("string>=?", strBoolBinop (>=))
+  , ("car", car)
+  , ("cdr", cdr)
+  , ("cons", cons)
   ]
+
+-- utilities to remove the constructor from the value
+unpackNum :: LispVal -> ThrowsError Integer
+unpackNum (Number n) = return n
+-- weak typing system means we can interpret "2" as a number
+unpackNum (String n) =
+  let parsed = reads n :: [(Integer, String)]
+   in if null parsed
+        then throwError $ TypeMismatch "number" $ String n
+        else return (fst $ head parsed)
+unpackNum (List [n]) = unpackNum n
+unpackNum notNum = throwError $ TypeMismatch "number" notNum
+
+unpackStr :: LispVal -> ThrowsError String
+unpackStr (String s) = return s
+unpackStr (Number s) = return $ show s
+unpackStr (Bool s)   = return $ show s
+unpackStr notStr     = throwError $ TypeMismatch "string" notStr
+
+unpackBool :: LispVal -> ThrowsError Bool
+unpackBool (Bool b) = return b
+unpackBool notBool  = throwError $ TypeMismatch "bool" notBool
 
 -- Takes a function and a list of evaluated arguments, applies said function
 -- and returns the result wrapped in the Number constructor
@@ -83,16 +122,45 @@ numericBinop ::
 numericBinop _ [] = throwError $ NumArgs 2 []
 numericBinop _ singleVal@[_] = throwError $ NumArgs 2 singleVal
 numericBinop op params = mapM unpackNum params >>= return . Number . foldl1 op
--- numericBinop op params = Number $ foldl1 op $ map unpackNum params
-  -- remove the constructor from the value to apply the operation
-  where
-    unpackNum :: LispVal -> ThrowsError Integer
-    unpackNum (Number n) = return n
-    -- weak typing system means we can interpret "2" as a number
-    unpackNum (String n) =
-      let parsed = reads n :: [(Integer, String)]
-       in if null parsed
-            then throwError $ TypeMismatch "number" $ String n
-            else return (fst $ head parsed)
-    unpackNum (List [n]) = unpackNum n
-    unpackNum notNum = throwError $ TypeMismatch "number" notNum
+
+-- Takes a comparator function and a list of evaluated arguments, uses said function
+-- to compare args
+boolBinop ::
+     (LispVal -> ThrowsError a)
+  -> (a -> a -> Bool)
+  -> [LispVal]
+  -> ThrowsError LispVal
+boolBinop unpacker op params =
+  if length params /= 2
+    then throwError $ NumArgs 2 params
+    else do
+      left <- unpacker $ head params
+      right <- unpacker $ params !! 1
+      return $ Bool $ left `op` right
+
+numBoolBinop = boolBinop unpackNum
+
+strBoolBinop = boolBinop unpackStr
+
+boolBoolBinop = boolBinop unpackBool
+
+-- list primitives
+car :: [LispVal] -> ThrowsError LispVal
+car [List (x:_)]         = return x
+car [DottedList (x:_) _] = return x
+car [badArg]             = throwError $ TypeMismatch "pair" badArg
+car badArgList           = throwError $ NumArgs 1 badArgList
+
+cdr :: [LispVal] -> ThrowsError LispVal
+cdr [List (_:xs)]         = return $ List xs
+cdr [DottedList [_] x]    = return x
+cdr [DottedList (_:xs) x] = return $ DottedList xs x
+cdr [badArg]              = throwError $ TypeMismatch "pair" badArg
+cdr badArgList            = throwError $ NumArgs 1 badArgList
+
+cons :: [LispVal] -> ThrowsError LispVal
+cons [x1, List []]            = return $ List [x1]
+cons [x, List xs]             = return $ List (x : xs)
+cons [x, DottedList xs xtail] = return $ DottedList (x : xs) xtail
+cons [x1, x2]                 = return $ DottedList [x1] x2
+cons badArgList               = throwError $ NumArgs 2 badArgList

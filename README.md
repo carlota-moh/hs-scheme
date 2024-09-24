@@ -22,7 +22,7 @@ stack run <arg1>
 
 Note that in order to parse Strings you need to explicitely escape the '"' characters. Otherwise they will be parsed as atoms. 
 
-It can also support basic arithmetic operations for both integers and strings (due to weak typing): 
+It can also support basic arithmetic operations for both integers, strings and bools, as well as if-else clauses: 
 
 ```
 > stack run "(+ 1 2)"
@@ -31,16 +31,19 @@ It can also support basic arithmetic operations for both integers and strings (d
 -1
 > stack run "(+ "\1\" 2)"
 -1
-> stack run "(* 1 2)"
-2
-> stack run "(/ 10 2)"
-5
-> stack run "(quotient 10 3)"
-3
-> stack run "(mod 10 3)"
+> stack run "(if (< 2 3) \"first is smaller\" \"second is smaller\")"
+"first is smaller"
+```
+
+Finally, it supports the car (head), cdr (tail) and cons operators:
+
+```
+> stack run "(car (1 2 3 4))"
 1
-> stack run "(remainder 10 3)"
-1
+> stack run "(cdr (a simple test))"
+(simple test)
+> stack run "(cons 1 (2 3 4))"
+(1 2 3 4)
 ```
 
 Running without arg will result in an error message being thrown:
