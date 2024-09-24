@@ -35,6 +35,17 @@ It can also support basic arithmetic operations for both integers, strings and b
 "first is smaller"
 ```
 
+Finally, it supports the car (head), cdr (tail) and cons operators:
+
+```
+> stack run "(car (1 2 3 4))"
+1
+> stack run "(cdr (a simple test))"
+(simple test)
+> stack run "(cons 1 (2 3 4))"
+(1 2 3 4)
+```
+
 Running without arg will result in an error message being thrown:
 
 ```bash
