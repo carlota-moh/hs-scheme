@@ -48,9 +48,26 @@ spec = do
               (List
                  [Atom "cdr", DottedList [Number 2, Number 3] (String "value")])
               `shouldBe` Right (DottedList [Number 3] (String "value"))
-        it "returns tail element if List inside a DottedList only has one element"
+        it
+          "returns tail element if List inside a DottedList only has one element"
           $ eval (List [Atom "cdr", DottedList [Number 2] (String "value")])
               `shouldBe` Right (String "value")
+      describe "cons primitive" $ do
+        it "concatenates single element with empty list"
+          $ eval (List [Atom "cons", Number 1, List []])
+              `shouldBe` Right (List [Number 1])
+        it "concatenates single element with non-emtpy list"
+          $ eval (List [Atom "cons", Number 1, List [Number 2]])
+              `shouldBe` Right (List [Number 1, Number 2])
+        it "concatenates element to List inside DottedList"
+          $ eval
+              (List
+                 [Atom "cons", Number 1, DottedList [Number 2] (String "value")])
+              `shouldBe` Right
+                           (DottedList [Number 1, Number 2] (String "value"))
+        it "returns DottedList when applied to two non-list elements"
+          $ eval (List [Atom "cons", Number 1, Number 2])
+              `shouldBe` Right (DottedList [Number 1] (Number 2))
     describe "if-else" $ do
       it "returns consequence when predicate is true"
         $ eval
