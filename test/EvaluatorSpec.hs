@@ -28,7 +28,29 @@ spec = do
       it "evaluates operations and returns the result as a LispVal Number"
         $ eval (List [Atom "+", Number 1, Number 2]) `shouldBe` Right (Number 3)
       it "evaluates boolean operations"
-        $ eval (List [Atom "<", Number 1, Number 2]) `shouldBe` Right (Bool True)
+        $ eval (List [Atom "<", Number 1, Number 2])
+            `shouldBe` Right (Bool True)
+      describe "car primitive" $ do
+        it "returns first element of a List"
+          $ eval (List [Atom "car", List [Number 2, Number 3, Number 4]])
+              `shouldBe` Right (Number 2)
+        it "returns first element of List inside a DottedList"
+          $ eval
+              (List
+                 [Atom "car", DottedList [Number 2, Number 3] (String "value")])
+              `shouldBe` Right (Number 2)
+      describe "cdr primitive" $ do
+        it "returns tail of a List"
+          $ eval (List [Atom "cdr", List [Number 2, Number 3, Number 4]])
+              `shouldBe` Right (List [Number 3, Number 4])
+        it "returns tail of each element inside a DottedList"
+          $ eval
+              (List
+                 [Atom "cdr", DottedList [Number 2, Number 3] (String "value")])
+              `shouldBe` Right (DottedList [Number 3] (String "value"))
+        it "returns tail element if List inside a DottedList only has one element"
+          $ eval (List [Atom "cdr", DottedList [Number 2] (String "value")])
+              `shouldBe` Right (String "value")
     describe "if-else" $ do
       it "returns consequence when predicate is true"
         $ eval
